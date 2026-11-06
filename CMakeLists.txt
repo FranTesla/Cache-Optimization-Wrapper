@@ -1,12 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 project(ASI_CacheOptimizer VERSION 1.2.0 LANGUAGES CXX C)
 
+# Fix FetchContent timestamp policy warning
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox")
 set(CMAKE_CXX_FLAGS_RELEASE "/Ox /DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /DDEBUG")
 
-set(OUT_DIR "${CMAKE_BINARY_DIR}/build/ASI")
+# Fix output directory nesting (avoid build/build/ASI)
+set(OUT_DIR "${CMAKE_BINARY_DIR}/ASI")
 
 # Fetch MinHook from releases ZIP
 include(FetchContent)
@@ -26,7 +32,6 @@ target_include_directories(ASICacheOptimizer PRIVATE
     ${minhook_SOURCE_DIR}/include
 )
 
-# Link against the correct static library file based on architecture (x64)
 target_link_libraries(ASICacheOptimizer PRIVATE 
     ${minhook_SOURCE_DIR}/lib/libMinHook.x64.lib
     kernel32
@@ -39,7 +44,7 @@ set_target_properties(ASICacheOptimizer PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-# Create PDB file copy command
+# Create PDB file copy command pointing to the correct output path
 add_custom_command(TARGET ASICacheOptimizer POST_BUILD 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
             $<TARGET_PDB_FILE:ASICacheOptimizer>
