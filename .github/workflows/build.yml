@@ -11,10 +11,10 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup MSVC
-      uses: microsoft/setup-msvc@v1
+      uses: ilammy/msvc-dev-cmd@v1
       
     - name: Setup CMake
       uses: lukka/get-cmake@latest
@@ -33,12 +33,18 @@ jobs:
             $pdbFile = "build/ASI/ASICacheOptimizer.pdb"
             
             # Create output directory if not exists
-            mkdir -p .build\release
+            if (!(Test-Path ".build/release")) {
+                New-Item -ItemType Directory -Force -Path ".build/release"
+            }
             
             # Copy files to output folder (don't overwrite existing)
-            if (!(Test-Path $asiFile)) {
-                Copy-Item "$asiFile" ".build\release\" -ErrorAction SilentlyContinue
-                Copy-Item "$pdbFile" ".build\release\" -ErrorAction SilentlyContinue
+            if (!(Test-Path "$env:GITHUB_WORKSPACE\.build\release\ASICacheOptimizer.asi")) {
+                if (Test-Path $asiFile) {
+                    Copy-Item "$asiFile" ".build/release/" -ErrorAction SilentlyContinue
+                }
+                if (Test-Path $pdbFile) {
+                    Copy-Item "$pdbFile" ".build/release/" -ErrorAction SilentlyContinue
+                }
             }
             
             Write-Host "Build artifacts copied to .build/release/"
@@ -47,7 +53,7 @@ jobs:
         }
         
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ASI-Cache-Optimizer
         path: |
