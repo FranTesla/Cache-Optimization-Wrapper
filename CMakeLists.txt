@@ -11,7 +11,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox")
 set(CMAKE_CXX_FLAGS_RELEASE "/Ox /DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /DDEBUG")
 
-# Fix output directory nesting (avoid build/build/ASI)
+# Set output directory
 set(OUT_DIR "${CMAKE_BINARY_DIR}/ASI")
 
 # Fetch MinHook from releases ZIP
@@ -44,8 +44,9 @@ set_target_properties(ASICacheOptimizer PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-# Create PDB file copy command pointing to the correct output path
+# Ensure output directory exists, then copy PDB file post-build
 add_custom_command(TARGET ASICacheOptimizer POST_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different 
             $<TARGET_PDB_FILE:ASICacheOptimizer>
             "${OUT_DIR}/ASICacheOptimizer.pdb"
