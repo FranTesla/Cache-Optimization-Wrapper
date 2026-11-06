@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /DDEBUG")
 
 set(OUT_DIR "${CMAKE_BINARY_DIR}/build/ASI")
 
-# Fetch MinHook from releases ZIP (not git source)
+# Fetch MinHook from releases ZIP
 include(FetchContent)
 FetchContent_Declare(
     minhook
@@ -16,10 +16,9 @@ FetchContent_Declare(
     DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/minhook_download"
 )
 
-# Add MinHook to build after fetching it
 FetchContent_MakeAvailable(minhook)
 
-# Create the ASI DLL with MinHook - use correct target name
+# Create the ASI DLL with MinHook
 add_library(ASICacheOptimizer MODULE src/dllmain.cpp)
 
 target_include_directories(ASICacheOptimizer PRIVATE 
@@ -27,8 +26,9 @@ target_include_directories(ASICacheOptimizer PRIVATE
     ${minhook_SOURCE_DIR}/include
 )
 
+# Link against the correct static library file based on architecture (x64)
 target_link_libraries(ASICacheOptimizer PRIVATE 
-    minhook
+    ${minhook_SOURCE_DIR}/lib/libMinHook.x64.lib
     kernel32
 )
 
