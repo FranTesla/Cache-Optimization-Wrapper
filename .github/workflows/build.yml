@@ -24,37 +24,8 @@ jobs:
         cmake -B build -DCMAKE_BUILD_TYPE=Release -A x64
         cmake --build build --config Release
         
-    - name: Copy to expected location (don't overwrite)
-      shell: pwsh
-      run: |
-        if (Test-Path "build/ASI") {
-            # Move built file to a consistent location in repo root
-            $asiFile = "build/ASI/ASICacheOptimizer.asi"
-            $pdbFile = "build/ASI/ASICacheOptimizer.pdb"
-            
-            # Create output directory if not exists
-            if (!(Test-Path ".build/release")) {
-                New-Item -ItemType Directory -Force -Path ".build/release"
-            }
-            
-            # Copy files to output folder (don't overwrite existing)
-            if (!(Test-Path "$env:GITHUB_WORKSPACE\.build\release\ASICacheOptimizer.asi")) {
-                if (Test-Path $asiFile) {
-                    Copy-Item "$asiFile" ".build/release/" -ErrorAction SilentlyContinue
-                }
-                if (Test-Path $pdbFile) {
-                    Copy-Item "$pdbFile" ".build/release/" -ErrorAction SilentlyContinue
-                }
-            }
-            
-            Write-Host "Build artifacts copied to .build/release/"
-        } else {
-            Write-Warning "Build directory not found, skipping copy"
-        }
-        
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ASI-Cache-Optimizer
-        path: |
-          .build/release/
+        path: build/Release/ASICacheOptimizer.asi
