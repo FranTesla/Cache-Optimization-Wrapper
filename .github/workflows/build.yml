@@ -1,0 +1,54 @@
+name: Build ASI Cache Optimizer
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup MSVC
+      uses: microsoft/setup-msvc@v1
+      
+    - name: Setup CMake
+      uses: lukka/get-cmake@latest
+      
+    - name: Build
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -A x64
+        cmake --build build --config Release
+        
+    - name: Copy to expected location (don't overwrite)
+      shell: pwsh
+      run: |
+        if (Test-Path "build/ASI") {
+            # Move built file to a consistent location in repo root
+            $asiFile = "build/ASI/ASICacheOptimizer.asi"
+            $pdbFile = "build/ASI/ASICacheOptimizer.pdb"
+            
+            # Create output directory if not exists
+            mkdir -p .build\release
+            
+            # Copy files to output folder (don't overwrite existing)
+            if (!(Test-Path $asiFile)) {
+                Copy-Item "$asiFile" ".build\release\" -ErrorAction SilentlyContinue
+                Copy-Item "$pdbFile" ".build\release\" -ErrorAction SilentlyContinue
+            }
+            
+            Write-Host "Build artifacts copied to .build/release/"
+        } else {
+            Write-Warning "Build directory not found, skipping copy"
+        }
+        
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ASI-Cache-Optimizer
+        path: |
+          .build/release/
