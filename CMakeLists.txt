@@ -9,10 +9,6 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox")
 set(CMAKE_CXX_FLAGS_RELEASE "/Ox /DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /DDEBUG")
-
-# Set output directory
-set(OUT_DIR "${CMAKE_BINARY_DIR}/ASI")
 
 # Fetch MinHook from releases ZIP
 include(FetchContent)
@@ -37,19 +33,10 @@ target_link_libraries(ASICacheOptimizer PRIVATE
     kernel32
 )
 
-# Set output to UAL's expected location  
+# Set the file extension to .asi
 set_target_properties(ASICacheOptimizer PROPERTIES
     SUFFIX ".asi"
-    RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}"
     POSITION_INDEPENDENT_CODE ON
-)
-
-# Ensure output directory exists, then copy PDB file post-build
-add_custom_command(TARGET ASICacheOptimizer POST_BUILD 
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${OUT_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-            $<TARGET_PDB_FILE:ASICacheOptimizer>
-            "${OUT_DIR}/ASICacheOptimizer.pdb"
 )
 
 message(STATUS "ASI Cache Optimizer will be built for Ultimate ASI Loader")
